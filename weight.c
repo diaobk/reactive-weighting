@@ -2,6 +2,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+double linear_interp(double,double,double,double,double)
+
+double weighter(double,double,double,double,double,double)
+
 int main()
 
 {
@@ -32,6 +36,20 @@ int main()
 
 
 	FILE *ifp;
+	FILE *ifp1;
+	FILE *ifp2;
+	FILE *ifp3;
+	FILE *ifp4;
+	FILE *ifp5;
+	FILE *ifp6;
+	FILE *ifp7;
+	FILE *ifp8;
+	FILE *ifp9;
+	FILE *ifp10;
+	FILE *ifp11;
+	FILE *ifp12;
+	FILE *ifp13;
+	FILE *ifp14;
 	FILE *ofp;
 
 	ifp = fopen("MeOH_sample.dat","r");
@@ -53,6 +71,9 @@ int main()
 
 	double c[2];
 
+	double f[200][11];
+	double fbond[408][2];
+
 	double disx;
 	double disy;
 	double disz;
@@ -62,6 +83,8 @@ int main()
 	double disz2;
 
 	double r;
+	double r0;
+	double r1;
 	double r2;
 	double s;
 	double theta;
@@ -85,6 +108,36 @@ int main()
 	int ts;
 
 	char buffer[100];
+
+	// read in cg force files
+	//MeOH Clion
+	for(i=0;i<200;i++){fscanf(ifp1,"%lf %lf\n",r,f[i][0]);}
+	//MeOH C1
+	for(i=0;i<200;i++){fscanf(ifp2,"%lf %lf\n",r,f[i][1]);}
+	//MeOH ClC
+	for(i=0;i<200;i++){fscanf(ifp3,"%lf %lf\n",r,f[i][2]);}
+	//MeOH C2
+	for(i=0;i<200;i++){fscanf(ifp4,"%lf %lf\n",r,f[i][3]);}
+	//Csion Clion
+	for(i=0;i<200;i++){fscanf(ifp5,"%lf %lf\n",r,f[i][4]);}
+	//Csion C1
+	for(i=0;i<200;i++){fscanf(ifp6,"%lf %lf\n",r,f[i][5]);}
+	//Csion ClC
+	for(i=0;i<200;i++){fscanf(ifp7,"%lf %lf\n",r,f[i][6]);}
+	//Csion C2
+	for(i=0;i<200;i++){fscanf(ifp8,"%lf %lf\n",r,f[i][7]);}
+	//Clion C1
+	for(i=0;i<200;i++){fscanf(ifp9,"%lf %lf\n",r,f[i][8]);}
+	//Clion ClC
+	for(i=0;i<200;i++){fscanf(ifp10,"%lf %lf\n",r,f[i][9]);}
+	//Clion C2
+	for(i=0;i<200;i++){fscanf(ifp11,"%lf %lf\n",r,f[i][10]);}
+	//C1 ClC
+	for(i=0;i<408;i++)(fscanf(ifp12,"%lf %lf\n",r,fbond[i][0]);}
+	//C1 C2
+	for(i=0;i<408;i++)(fscanf(ifp12,"%lf %lf\n",r,fbond[i][1]);}
+
+
 
 	//t is timestep counter
 
@@ -166,15 +219,24 @@ int main()
 
 			r = sqrt(disx*disx + disy*disy + disz*disz);
 
-//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
+			
+
+//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r);
+//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r);
+//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r);
 
 			//total reactive chloride force = total reactive choride force - coefficient * coeffcient * table value for reactive chloride and methanol - coeffcient *coeffcient * table value for bonded chloride and methanol
+			if( r < 10.0){
+			r0 = r/0.05;
 
-			fx[1000] = fx[1000] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][]*disx/r)
-			fy[1000] = fy[1000] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][]*disy/r)
-			fz[1000] = fz[1000] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][]*disz/r)
+			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][0],f[r0+1][0],r);
+			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][2],f[r0+1][2],r);
+
+
+			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+			fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+			fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+			}
 
 ///////////////////////////////////////////
 
@@ -205,16 +267,22 @@ int main()
 
 			r = sqrt(disx*disx + disy*disy + disz*disz);
 
-//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
+//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r);
+//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r);
+//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r);
 
 			//total reactive carbon force = total reactive carbon force - coefficient * coeffcient * table value for reactive carbon and methanol - coefficient * coeffcient * table value for reactive carbon and methanol 
+			if( r < 10.0){
+			r0 = r/0.05;
 
-			fx[1002] = fx[1002] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-			fy[1002] = fy[1002] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-			fz[1002] = fz[1002] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
+			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][1],f[r0+1][1],r);
+			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][1],f[r0+1][1],r);
 
+
+			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+			fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+			fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+			}
 ///////////////////////////////////////////
 
 			//calculate distance between methanol and bonded chloride
@@ -249,11 +317,17 @@ int main()
 //			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
 
 			//total bonded chlorine force = total bonded chlorine force - coefficient * coeffcient * table value for bonded chlorine and methanol - coeffcient *coeffcient * table value for reactive chlorine  and methanol
+			if( r < 10.0){
+			r0 = r/0.05;
 
-			fx[1003] = fx[1003] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-			fy[1003] = fy[1003] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-			fz[1003] = fz[1003] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
+			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][2],f[r0+1][2],r);
+			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][0],f[r0+1][0],r);
 
+
+			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+			fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+			fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+			}
 /////////////////////////////////////////////
 			
 			//methanol and propyl bead
@@ -288,10 +362,17 @@ int main()
 //			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
 
 			//total propyl force = total propyl  force - coefficient * coeffcient * table value for propyl and methanol - coefficient * coeffcient * table value for propyl and methanol
+			if( r < 10.0){
+			r0 = r/0.05;
 
-			fx[1004] = fx[1004] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-			fy[1004] = fy[1004] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-			fz[1004] = fz[1004] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)	
+			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][3],f[r0+1][3],r);
+			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][3],f[r0+1][3],r);
+
+
+			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+			fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+			fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+			}	
 		}
 
 ///////////////////////////////////////////
@@ -329,12 +410,17 @@ int main()
 //		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
 //		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
 
+		if( r < 10.0){
+		r0 = r/0.05;
+
+		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][4],f[r0+1][4],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][6],f[r0+1][6],r);
 
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1000] = fy[1000] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1000] = fz[1000] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
-
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		}
 ///////////////////////////////////////////
 
 		//positive ion and reactive carbon bead
@@ -367,10 +453,17 @@ int main()
 //		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
 //		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
 
-		fx[1002] = fx[1002] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1002] = fy[1002] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1002] = fz[1002] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
+		if( r < 10.0){
+		r0 = r/0.05;
 
+		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][5],f[r0+1][5],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][5],f[r0+1][5],r);
+
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		}
 ///////////////////////////////////////////
 
 		//positive ion and bonded chlorine
@@ -404,10 +497,16 @@ int main()
 //		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
 //		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
 
-		fx[1003] = fx[1003] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[t][1]*(f[r][0]*disx/r)
-		fy[1003] = fy[1003] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[t][1]*(f[r][0]*disy/r)
-		fz[1003] = fz[1003] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[t][1]*(f[r][0]*disz/r)
+		if( r < 10.0){
+		r0 = r/0.05;
 
+		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][6],f[r0+1][6],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][4],f[r0+1][4],r);
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		}
 ///////////////////////////////////////////
 
 		//positive ion and propyl bead
@@ -441,10 +540,18 @@ int main()
 //		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
 //		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
 
-		fx[1004] = fx[1004] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1004] = fy[1004] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1004] = fz[1004] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
 
+		if( r < 10.0){
+		r0 = r/0.05;
+
+		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][7],f[r0+1][7],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][7],f[r0+1][7],r);
+
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		}
 ///////////////////////////////////////////
 	
 		//reactive chloride with reactive carbon bead
@@ -476,14 +583,22 @@ int main()
 
 		r = sqrt(disx*disx + disy*disy + disz*disz);
 
-		fx[1000] = fx[1000] - c[0]*c[0]*(f[r][0]*disx/r)-c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1000] = fy[1000] - c[0]*c[0]*(f[r][0]*disy/r)-c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1000] = fz[1000] - c[0]*c[0]*(f[r][0]*disz/r)-c[1]*c[1]*(f[r][0]*disz/r)
 
-		fx[1002] = fx[1002] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[t][1]*(f[r][0]*disx/r)
-		fy[1002] = fy[1002] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[t][1]*(f[r][0]*disy/r)
-		fz[1002] = fz[1002] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[t][1]*(f[r][0]*disz/r)
+		if( r < 10.0){
+		r0 = r/0.05;
+		r1 = r/0.01;
+		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][8],f[r0+1][8],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),fbond[r1][1],fbond[r1+1][10],r);
 
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+
+		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
+		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
+		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
+		}
 ///////////////////////////////////////////
 	
 		//reactive chloride with bonded chloride
@@ -515,16 +630,24 @@ int main()
 
 		r = sqrt(disx*disx + disy*disy + disz*disz);
 
-		fx[1000] = fx[1000] - c[0]*c[0]*(f[r][0]*disx/r)-c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1000] = fy[1000] - c[0]*c[0]*(f[r][0]*disy/r)-c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1000] = fz[1000] - c[0]*c[0]*(f[r][0]*disz/r)-c[1]*c[1]*(f[r][0]*disz/r)
 
-		fx[1003] = fx[1003] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1003] = fy[1003] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1003] = fz[1003] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
+		if( r < 10.0){
+		r0 = r/0.05;
 
+		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][9],f[r0+1][9],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][9],f[r0+1][9],r);
+
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+
+		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
+		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
+		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
+		}
 ///////////////////////////////////////////
-
+/*
 		//reactive chloride with propyl bead
 
 		disx = x[1000]-x[1004];
@@ -554,14 +677,23 @@ int main()
 
 		r = sqrt(disx*disx + disy*disy + disz*disz);
 
-		fx[1000] = fx[1000] - c[0]*c[0]*(f[r][0]*disx/r)-c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1000] = fy[1000] - c[0]*c[0]*(f[r][0]*disy/r)-c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1000] = fz[1000] - c[0]*c[0]*(f[r][0]*disz/r)-c[1]*c[1]*(f[r][0]*disz/r)
 
-		fx[1004] = fx[1004] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[t][1]*(f[r][0]*disx/r)
-		fy[1004] = fy[1004] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[t][1]*(f[r][0]*disy/r)
-		fz[1004] = fz[1004] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[t][1]*(f[r][0]*disz/r)
+		if( r < 10.0){
+		r0 = r/0.05;
 
+		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][9],f[r0+1][9],r);
+
+
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r);
+
+		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r);
+		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r);
+		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r);
+		}
+*/
 ///////////////////////////////////////////
 
 		//reactive carbon and bonded chloride
@@ -593,14 +725,22 @@ int main()
 
 		r = sqrt(disx*disx + disy*disy + disz*disz);
 
-		fx[1002] = fx[1002] - c[0]*c[0]*(f[r][0]*disx/r)-c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1002] = fy[1002] - c[0]*c[0]*(f[r][0]*disy/r)-c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1002] = fz[1002] - c[0]*c[0]*(f[r][0]*disz/r)-c[1]*c[1]*(f[r][0]*disz/r)
+		if( r < 10.0){
+		r0 = r/0.05;
+		r1 = r/0.01;
 
-		fx[1003] = fx[1003] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1003] = fy[1003] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1003] = fz[1003] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
+		cgforce1 = linear_interp(r0,(r0+0.05),fbond[r1][1],fbond[r1+1][1],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][8],f[r0+1][8],r);
 
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+
+		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
+		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
+		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
+		}
 ///////////////////////////////////////////
 
 		//reactive carbon and propyl
@@ -632,16 +772,22 @@ int main()
 
 		r = sqrt(disx*disx + disy*disy + disz*disz);
 
-		fx[1002] = fx[1002] - c[0]*c[0]*(f[r][0]*disx/r)-c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1002] = fy[1002] - c[0]*c[0]*(f[r][0]*disy/r)-c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1002] = fz[1002] - c[0]*c[0]*(f[r][0]*disz/r)-c[1]*c[1]*(f[r][0]*disz/r)
+		r0 = r/0.05;
 
-		fx[1004] = fx[1004] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1004] = fy[1004] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1004] = fz[1004] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
+		cgforce1 = linear_interp(r0,(r0+0.05),fbond[r0][1],fbond[r0+1][1],r);
+		cgforce2 = linear_interp(r0,(r0+0.05),fbond[r0][1],fbond[r0+1][1],r);
+
+
+		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+
+		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
+		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
+		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
 
 ///////////////////////////////////////////
-
+/*
 		//bonded chloride and propyl
 
 		disx = x[1003]-x[1004];
@@ -671,15 +817,25 @@ int main()
 
 		r = sqrt(disx*disx + disy*disy + disz*disz);
 
-		fx[1003] = fx[1003] - c[0]*c[0]*(f[r][0]*disx/r)-c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1003] = fy[1003] - c[0]*c[0]*(f[r][0]*disy/r)-c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1003] = fz[1003] - c[0]*c[0]*(f[r][0]*disz/r)-c[1]*c[1]*(f[r][0]*disz/r)
+		if( r < 10.0){
 
-		fx[1004] = fx[1004] + c[0]*c[0]*(f[r][0]*disx/r)+c[1]*c[1]*(f[r][0]*disx/r)
-		fy[1004] = fy[1004] + c[0]*c[0]*(f[r][0]*disy/r)+c[1]*c[1]*(f[r][0]*disy/r)
-		fz[1004] = fz[1004] + c[0]*c[0]*(f[r][0]*disz/r)+c[1]*c[1]*(f[r][0]*disz/r)
+		r0=r/0.05;
 
+		cgforce2 = linear_interp(r0,(r0+0.05),fbond[r0][1],fbond[r0+1][1],r)
+
+
+		fx[1003] = fx[1003]-c[1]*c[1]*(cgforce2*disx/r);
+		fy[1003] = fy[1003]-c[1]*c[1]*(cgforce2*disy/r);
+		fz[1003] = fz[1003]-c[1]*c[1]*(cgforce2*disz/r);
+
+		fx[1004] = fx[1004]+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1004] = fy[1004]+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1004] = fz[1004]+c[1]*c[1]*(cgforce2*disz/r);
+		}
+*/
 ///////////////////////////////////////////
+/*
+
 		//angle with reactive 
 
 		disx = x[1000]-x[1002];
@@ -743,17 +899,17 @@ int main()
 		a12 = -a / (r*r2);
 		a22 = a*dot / (r2*r3);		
 
-		fx[1000] = fx[1000] - c[0]*(a11*delx + a12*delx2);
-		fy[1000] = fy[1000] - c[0]*(a11*dely + a12*dely2);
-		fz[1000] = fz[1000] - c[0]*(a11*delz + a12*delz2);
+		fx[1000] = fx[1000] - c[0]*c[0]*(a11*delx + a12*delx2);
+		fy[1000] = fy[1000] - c[0]*c[0]*(a11*dely + a12*dely2);
+		fz[1000] = fz[1000] - c[0]*c[0]*(a11*delz + a12*delz2);
 
-		fx[1002] = fx[1002] + c[0]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
-		fy[1002] = fy[1002] + c[0]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
-		fz[1002] = fz[1002] + c[0]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
+		fx[1002] = fx[1002] + c[0]*c[0]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
+		fy[1002] = fy[1002] + c[0]*c[0]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
+		fz[1002] = fz[1002] + c[0]*c[0]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
 
-		fx[1004] = fx[1004] - c[0]*(a22*delx2 + a12*delx);
-		fy[1004] = fy[1004] - c[0]*(a22*dely2 + a12*dely);
-		fz[1004] = fz[1004] - c[0]*(a22*delz2 + a12*delz);
+		fx[1004] = fx[1004] - c[0]*c[0]*(a22*delx2 + a12*delx);
+		fy[1004] = fy[1004] - c[0]*c[0]*(a22*dely2 + a12*dely);
+		fz[1004] = fz[1004] - c[0]*c[0]*(a22*delz2 + a12*delz);
 
 ////////////////////////////////
 
@@ -820,18 +976,18 @@ int main()
 		a12 = -a / (r*r2);
 		a22 = a*dot / (r2*r3);		
 
-		fx[1003] = fx[1003] - c[1]*(a11*delx + a12*delx2);
-		fy[1003] = fy[1003] - c[1]*(a11*dely + a12*dely2);
-		fz[1003] = fz[1003] - c[1]*(a11*delz + a12*delz2);
+		fx[1003] = fx[1003] - c[1]*c[1]*(a11*delx + a12*delx2);
+		fy[1003] = fy[1003] - c[1]*c[1]*(a11*dely + a12*dely2);
+		fz[1003] = fz[1003] - c[1]*c[1]*(a11*delz + a12*delz2);
 
-		fx[1002] = fx[1002] + c[1]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
-		fy[1002] = fy[1002] + c[1]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
-		fz[1002] = fz[1002] + c[1]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
+		fx[1002] = fx[1002] + c[1]*c[1]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
+		fy[1002] = fy[1002] + c[1]*c[1]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
+		fz[1002] = fz[1002] + c[1]*c[1]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
 
-		fx[1004] = fx[1004] - c[1]*(a22*delx2 + a12*delx);
-		fy[1004] = fy[1004] - c[1]*(a22*dely2 + a12*dely);
-		fz[1004] = fz[1004] - c[1]*(a22*delz2 + a12*delz);
-
+		fx[1004] = fx[1004] - c[1]*c[1]*(a22*delx2 + a12*delx);
+		fy[1004] = fy[1004] - c[1]*c[1]*(a22*dely2 + a12*dely);
+		fz[1004] = fz[1004] - c[1]*c[1]*(a22*delz2 + a12*delz);
+*/
 
 		//weigh forces
 
@@ -857,3 +1013,19 @@ return 0;
 
 }
 
+double linear_interp(double x0,double,x1,double y0,double y1,double x)
+{
+	//linearly interpolates between two points on a table
+	double a = (y1-y0) / (x1-x0);
+	double y = (y0 + (x-x0)*a);
+	return y;
+}
+
+double nonreactive_radial_force(double c0,double c1,double r,double dis,double cgforce1,double cgforce2)
+{
+
+	//general weighter
+	double newforce;
+	newforce = c0*c0(cgforce1*dis/r) + c1*c1(cgforce2*dis/r)
+	return newforce;
+}
