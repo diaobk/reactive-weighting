@@ -53,7 +53,19 @@ int main()
 	FILE *ofp;
 
 	ifp = fopen("MeOH_sample.dat","r");
-	ifp2 = fopen("MeOH_sample.dat","r");
+	ifp1 = fopen("fmecMeOH_Clion.dat","r");
+	ifp2 = fopen("fmecMeOH_C1.dat","r");
+	ifp3 = fopen("fmecMeOH_ClC.dat","r");
+	ifp4 = fopen("fmecMeOH_C2.dat","r");
+	ifp5 = fopen("fmecCsion_Clion.dat","r");
+	ifp6 = fopen("fmecCsion_C1.dat","r");
+	ifp7 = fopen("fmecCsion_ClC.dat","r");
+	ifp8 = fopen("fmecCsion_C2.dat","r");
+	ifp9 = fopen("fmecClion_C1.dat","r");
+	ifp10 = fopen("fmecClion_ClC.dat","r");
+	ifp11 = fopen("fmecClion_C2.dat","r");
+	ifp12 = fopen("fmecC1_ClC_bon.dat","r");
+	ifp13 = fopen("fmecC1_C2_bon.dat","r");	
 	ofp = fopen("cg.MeOH_sample.dat","w");
 
 	int mol[1005];
@@ -139,7 +151,7 @@ int main()
 	//C1 ClC
 	for(i=0;i<408;i++){fscanf(ifp12,"%lf %lf\n",r,fbond[i][0]);}
 	//C1 C2
-	for(i=0;i<408;i++){fscanf(ifp12,"%lf %lf\n",r,fbond[i][1]);}
+	for(i=0;i<408;i++){fscanf(ifp13,"%lf %lf\n",r,fbond[i][1]);}
 
 
 
