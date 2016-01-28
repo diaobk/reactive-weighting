@@ -2,9 +2,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-double linear_interp(double,double,double,double,double)
+double linear_interp(double,double,double,double,double);
 
-double weighter(double,double,double,double,double,double)
+double nonreactive_radial_force(double,double,double,double,double,double);
 
 int main()
 
@@ -83,11 +83,15 @@ int main()
 	double disz2;
 
 	double r;
-	double r0;
-	double r1;
 	double r2;
 	double s;
 	double theta;
+
+	int r0;
+	int r1;
+
+	double cgforce1;
+	double cgforce2;
 
 	double a;
 	double a11;
@@ -133,9 +137,9 @@ int main()
 	//Clion C2
 	for(i=0;i<200;i++){fscanf(ifp11,"%lf %lf\n",r,f[i][10]);}
 	//C1 ClC
-	for(i=0;i<408;i++)(fscanf(ifp12,"%lf %lf\n",r,fbond[i][0]);}
+	for(i=0;i<408;i++){fscanf(ifp12,"%lf %lf\n",r,fbond[i][0]);}
 	//C1 C2
-	for(i=0;i<408;i++)(fscanf(ifp12,"%lf %lf\n",r,fbond[i][1]);}
+	for(i=0;i<408;i++){fscanf(ifp12,"%lf %lf\n",r,fbond[i][1]);}
 
 
 
@@ -1013,7 +1017,7 @@ return 0;
 
 }
 
-double linear_interp(double x0,double,x1,double y0,double y1,double x)
+double linear_interp(double x0,double x1,double y0,double y1,double x)
 {
 	//linearly interpolates between two points on a table
 	double a = (y1-y0) / (x1-x0);
@@ -1026,6 +1030,6 @@ double nonreactive_radial_force(double c0,double c1,double r,double dis,double c
 
 	//general weighter
 	double newforce;
-	newforce = c0*c0(cgforce1*dis/r) + c1*c1(cgforce2*dis/r)
+	newforce = c0*c0*(cgforce1*dis/r) + c1*c1*(cgforce2*dis/r);
 	return newforce;
 }
