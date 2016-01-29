@@ -36,6 +36,7 @@ int main()
 
 
 	FILE *ifp;
+	FILE *ifp0;
 	FILE *ifp1;
 	FILE *ifp2;
 	FILE *ifp3;
@@ -52,21 +53,23 @@ int main()
 	FILE *ifp14;
 	FILE *ofp;
 
-	ifp = fopen("MeOH_sample.dat","r");
-	ifp1 = fopen("fmecMeOH_Clion.dat","r");
-	ifp2 = fopen("fmecMeOH_C1.dat","r");
-	ifp3 = fopen("fmecMeOH_ClC.dat","r");
-	ifp4 = fopen("fmecMeOH_C2.dat","r");
-	ifp5 = fopen("fmecCsion_Clion.dat","r");
-	ifp6 = fopen("fmecCsion_C1.dat","r");
-	ifp7 = fopen("fmecCsion_ClC.dat","r");
-	ifp8 = fopen("fmecCsion_C2.dat","r");
-	ifp9 = fopen("fmecClion_C1.dat","r");
-	ifp10 = fopen("fmecClion_ClC.dat","r");
-	ifp11 = fopen("fmecClion_C2.dat","r");
-	ifp12 = fopen("fmecC1_ClC_bon.dat","r");
-	ifp13 = fopen("fmecC1_C2_bon.dat","r");	
-	ofp = fopen("cg.MeOH_sample.dat","w");
+	ifp = fopen("MeOH_sample1_nobias.cg.dat","r");
+	ifp0 = fopen("coeff.dat","r");
+	ifp1 = fopen("fmecMeOH_Clion.table","r");
+	ifp2 = fopen("fmecMeOH_C1.table","r");
+	ifp3 = fopen("fmecMeOH_ClC.table","r");
+	ifp4 = fopen("fmecMeOH_C2.table","r");
+	ifp5 = fopen("fmecClion_Csion.table","r");
+	ifp6 = fopen("fmecCsion_C1.table","r");
+	ifp7 = fopen("fmecCsion_ClC.table","r");
+	ifp8 = fopen("fmecCsion_C2.table","r");
+	ifp9 = fopen("fmecClion_C1.table","r");
+	ifp10 = fopen("fmecClion_ClC.table","r");
+	ifp11 = fopen("fmecClion_C2.table","r");
+	ifp12 = fopen("fmecC1_ClC_bon.table","r");
+	ifp13 = fopen("fmecC1_C2_bon.table","r");	
+	ifp14 = fopen("fmecMeOH_MeOH.table","r");
+	ofp = fopen("cg.MeOH_sample_remainder.dat","w");
 
 	int mol[1005];
 	int type[1005];
@@ -83,7 +86,7 @@ int main()
 
 	double c[2];
 
-	double f[200][11];
+	double f[201][12];
 	double fbond[408][2];
 
 	double disx;
@@ -125,43 +128,48 @@ int main()
 
 	char buffer[100];
 
+		
 	// read in cg force files
 	//MeOH Clion
-	for(i=0;i<200;i++){fscanf(ifp1,"%lf %lf\n",r,f[i][0]);}
+	for(i=0;i<201;i++){fscanf(ifp1,"%lf %lf\n",&r,&f[i][0]);}
 	//MeOH C1
-	for(i=0;i<200;i++){fscanf(ifp2,"%lf %lf\n",r,f[i][1]);}
+	for(i=0;i<201;i++){fscanf(ifp2,"%lf %lf\n",&r,&f[i][1]);}
 	//MeOH ClC
-	for(i=0;i<200;i++){fscanf(ifp3,"%lf %lf\n",r,f[i][2]);}
+	for(i=0;i<201;i++){fscanf(ifp3,"%lf %lf\n",&r,&f[i][2]);}
 	//MeOH C2
-	for(i=0;i<200;i++){fscanf(ifp4,"%lf %lf\n",r,f[i][3]);}
+	for(i=0;i<201;i++){fscanf(ifp4,"%lf %lf\n",&r,&f[i][3]);}
 	//Csion Clion
-	for(i=0;i<200;i++){fscanf(ifp5,"%lf %lf\n",r,f[i][4]);}
+	for(i=0;i<201;i++){fscanf(ifp5,"%lf %lf\n",&r,&f[i][4]);}
 	//Csion C1
-	for(i=0;i<200;i++){fscanf(ifp6,"%lf %lf\n",r,f[i][5]);}
+	for(i=0;i<201;i++){fscanf(ifp6,"%lf %lf\n",&r,&f[i][5]);}
 	//Csion ClC
-	for(i=0;i<200;i++){fscanf(ifp7,"%lf %lf\n",r,f[i][6]);}
+	for(i=0;i<201;i++){fscanf(ifp7,"%lf %lf\n",&r,&f[i][6]);}
 	//Csion C2
-	for(i=0;i<200;i++){fscanf(ifp8,"%lf %lf\n",r,f[i][7]);}
+	for(i=0;i<201;i++){fscanf(ifp8,"%lf %lf\n",&r,&f[i][7]);}
 	//Clion C1
-	for(i=0;i<200;i++){fscanf(ifp9,"%lf %lf\n",r,f[i][8]);}
+	for(i=0;i<201;i++){fscanf(ifp9,"%lf %lf\n",&r,&f[i][8]);}
 	//Clion ClC
-	for(i=0;i<200;i++){fscanf(ifp10,"%lf %lf\n",r,f[i][9]);}
+	for(i=0;i<201;i++){fscanf(ifp10,"%lf %lf\n",&r,&f[i][9]);}
 	//Clion C2
-	for(i=0;i<200;i++){fscanf(ifp11,"%lf %lf\n",r,f[i][10]);}
+	for(i=0;i<201;i++){fscanf(ifp11,"%lf %lf\n",&r,&f[i][10]);}
 	//C1 ClC
-	for(i=0;i<408;i++){fscanf(ifp12,"%lf %lf\n",r,fbond[i][0]);}
+	for(i=0;i<408;i++){fscanf(ifp12,"%lf %lf\n",&r,&fbond[i][0]);}
 	//C1 C2
-	for(i=0;i<408;i++){fscanf(ifp13,"%lf %lf\n",r,fbond[i][1]);}
+	for(i=0;i<408;i++){fscanf(ifp13,"%lf %lf\n",&r,&fbond[i][1]);}
+	//MeOH MeOH
+	for(i=0;i<201;i++){fscanf(ifp14,"%lf %lf\n",&r,&f[i][11]);}
 
 
 
 	//t is timestep counter
 
-	for(t=0;t<8000;t++){
+	for(t=0;t<1;t++){
 
 		//read in line of coefficient file
 
-		fscanf(ifp2,"%lf %lf\n",&c[0],&c[1]);
+		fscanf(ifp0,"%lf %lf\n",&c[0],&c[1]);
+
+		printf("%lf %lf\n",c[0],c[1]);
 
 		//read in header
 
@@ -201,9 +209,58 @@ int main()
 
 			//read in coordinates
 
-			fscanf(ifp,"%d %d %d %lf %lf %lf %lf %lf %lf %lf %lf\n",&id,&mol[j],&type[j],&q[j],&mass[j],&x[j],&y[j],&z[j],&fx[j],&fy[j],&fz[j]);
+			fscanf(ifp,"%d %d %d %lf %lf %lf %lf %lf %lf\n",&id,&mol[i],&type[i],&x[i],&y[i],&z[i],&fx[i],&fy[i],&fz[i]);
 		}
+/*
+		for(i=0;i<999;i++){
+			for(j=i+1;j<1000;j++){
+				
+				disx = x[i]-x[j];
+				disy = y[i]-y[j];
+				disz = z[i]-z[j];
 
+				if(disx > (box-nbox)/2.0){
+					disx = disx - (box-nbox);
+				}
+				if(disx < -(box-nbox)/2.0){
+					disx = disx + (box-nbox);
+				}
+				if(disy > (box-nbox)/2.0){
+					disy = disy - (box-nbox);
+				}
+				if(disy < -(box-nbox)/2.0){
+					disy = disy + (box-nbox);
+				}	
+				if(disz > (box-nbox)/2.0){
+					disz = disz - (box-nbox);
+				}
+				if(disz < -(box-nbox)/2.0){
+					disz = disz + (box-nbox);
+				}
+
+				r = sqrt(disx*disx + disy*disy + disz*disz);
+
+
+				if( r < 10.0){
+				r0 = r/0.05;
+
+//				printf("%lf %d\n",r,r0);
+
+				cgforce1 = linear_interp(r0*0.05,(0.05*r0+0.05),f[r0][11],f[r0+1][11],r);
+
+//				printf("%lf\n",cgforce1);
+
+				fx[j] = fx[j] + (cgforce1*disx/r);
+				fy[j] = fy[j] + (cgforce1*disy/r);
+				fz[j] = fz[j] + (cgforce1*disz/r);
+
+				fx[i] = fx[i] - (cgforce1*disx/r);
+				fy[i] = fy[i] - (cgforce1*disy/r);
+				fz[i] = fz[i] - (cgforce1*disz/r);
+				}
+			}
+		}			
+*/
 		for(i=0;i<1000;i++){
 
 			//calculate distance between methanol and reactive chloride. 
@@ -245,8 +302,12 @@ int main()
 			if( r < 10.0){
 			r0 = r/0.05;
 
-			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][0],f[r0+1][0],r);
-			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][2],f[r0+1][2],r);
+//			printf("%lf %d\n",r,r0);
+
+			cgforce1 = linear_interp(r0*0.05,(0.05*r0+0.05),f[r0][0],f[r0+1][0],r);
+			cgforce2 = linear_interp(r0*0.05,(0.05*r0+0.05),f[r0][2],f[r0+1][2],r);
+
+//			printf("%lf %lf\n",cgforce1,cgforce2);
 
 
 			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
@@ -291,13 +352,13 @@ int main()
 			if( r < 10.0){
 			r0 = r/0.05;
 
-			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][1],f[r0+1][1],r);
-			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][1],f[r0+1][1],r);
+			cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][1],f[r0+1][1],r);
+			cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][1],f[r0+1][1],r);
 
 
-			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-			fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-			fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+			fx[1002] = fx[1002] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+			fy[1002] = fy[1002] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+			fz[1002] = fz[1002] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 			}
 ///////////////////////////////////////////
 
@@ -336,13 +397,13 @@ int main()
 			if( r < 10.0){
 			r0 = r/0.05;
 
-			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][2],f[r0+1][2],r);
-			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][0],f[r0+1][0],r);
+			cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][2],f[r0+1][2],r);
+			cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][0],f[r0+1][0],r);
 
 
-			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-			fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-			fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+			fx[1003] = fx[1003] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+			fy[1003] = fy[1003] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+			fz[1003] = fz[1003] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 			}
 /////////////////////////////////////////////
 			
@@ -381,13 +442,13 @@ int main()
 			if( r < 10.0){
 			r0 = r/0.05;
 
-			cgforce1 = linear_interp(r0,(r0+0.05),f[r0][3],f[r0+1][3],r);
-			cgforce2 = linear_interp(r0,(r0+0.05),f[r0][3],f[r0+1][3],r);
+			cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][3],f[r0+1][3],r);
+			cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][3],f[r0+1][3],r);
 
 
-			fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-			fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-			fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+			fx[1004] = fx[1004] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+			fy[1004] = fy[1004] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+			fz[1004] = fz[1004] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 			}	
 		}
 
@@ -429,8 +490,8 @@ int main()
 		if( r < 10.0){
 		r0 = r/0.05;
 
-		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][4],f[r0+1][4],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][6],f[r0+1][6],r);
+		cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][4],f[r0+1][4],r);
+		cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][6],f[r0+1][6],r);
 
 
 		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
@@ -472,13 +533,13 @@ int main()
 		if( r < 10.0){
 		r0 = r/0.05;
 
-		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][5],f[r0+1][5],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][5],f[r0+1][5],r);
+		cgforce1 = linear_interp(r0*0.05,(0.05*r0+0.05),f[r0][5],f[r0+1][5],r);
+		cgforce2 = linear_interp(r0*0.05,(0.05*r0+0.05),f[r0][5],f[r0+1][5],r);
 
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		fx[1002] = fx[1002] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1002] = fy[1002] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1002] = fz[1002] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 		}
 ///////////////////////////////////////////
 
@@ -516,12 +577,12 @@ int main()
 		if( r < 10.0){
 		r0 = r/0.05;
 
-		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][6],f[r0+1][6],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][4],f[r0+1][4],r);
+		cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][6],f[r0+1][6],r);
+		cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][4],f[r0+1][4],r);
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		fx[1003] = fx[1003] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1003] = fy[1003] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1003] = fz[1003] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 		}
 ///////////////////////////////////////////
 
@@ -560,13 +621,13 @@ int main()
 		if( r < 10.0){
 		r0 = r/0.05;
 
-		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][7],f[r0+1][7],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][7],f[r0+1][7],r);
+		cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][7],f[r0+1][7],r);
+		cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][7],f[r0+1][7],r);
 
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		fx[1004] = fx[1004] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1004] = fy[1004] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1004] = fz[1004] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 		}
 ///////////////////////////////////////////
 	
@@ -603,17 +664,17 @@ int main()
 		if( r < 10.0){
 		r0 = r/0.05;
 		r1 = r/0.01;
-		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][8],f[r0+1][8],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),fbond[r1][1],fbond[r1+1][10],r);
+		cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][8],f[r0+1][8],r);
+		cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),fbond[r1][1],fbond[r1+1][10],r);
 
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		fx[1002] = fx[1002] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1002] = fy[1002] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1002] = fz[1002] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 
-		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
-		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
-		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
+		fx[1000] = fx[1000] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
 		}
 ///////////////////////////////////////////
 	
@@ -650,17 +711,17 @@ int main()
 		if( r < 10.0){
 		r0 = r/0.05;
 
-		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][9],f[r0+1][9],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][9],f[r0+1][9],r);
+		cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][9],f[r0+1][9],r);
+		cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][9],f[r0+1][9],r);
 
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		fx[1003] = fx[1003] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1003] = fy[1003] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1003] = fz[1003] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 
-		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
-		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
-		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
+		fx[1000] = fx[1000] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
+		fy[1000] = fy[1000] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
+		fz[1000] = fz[1000] - c[0]*c[0]*(cgforce1*disz/r)-c[1]*c[1]*(cgforce2*disz/r);
 		}
 ///////////////////////////////////////////
 /*
@@ -745,13 +806,13 @@ int main()
 		r0 = r/0.05;
 		r1 = r/0.01;
 
-		cgforce1 = linear_interp(r0,(r0+0.05),fbond[r1][1],fbond[r1+1][1],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),f[r0][8],f[r0+1][8],r);
+		cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),fbond[r1][1],fbond[r1+1][1],r);
+		cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),f[r0][8],f[r0+1][8],r);
 
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		fx[1003] = fx[1003] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1003] = fy[1003] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1003] = fz[1003] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 
 		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
 		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
@@ -790,13 +851,13 @@ int main()
 
 		r0 = r/0.05;
 
-		cgforce1 = linear_interp(r0,(r0+0.05),fbond[r0][1],fbond[r0+1][1],r);
-		cgforce2 = linear_interp(r0,(r0+0.05),fbond[r0][1],fbond[r0+1][1],r);
+		cgforce1 = linear_interp(r0*0.05,(r0*0.05+0.05),fbond[r0][1],fbond[r0+1][1],r);
+		cgforce2 = linear_interp(r0*0.05,(r0*0.05+0.05),fbond[r0][1],fbond[r0+1][1],r);
 
 
-		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
-		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
-		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
+		fx[1004] = fx[1004] + c[0]*c[0]*(cgforce1*disx/r)+c[1]*c[1]*(cgforce2*disx/r);
+		fy[1004] = fy[1004] + c[0]*c[0]*(cgforce1*disy/r)+c[1]*c[1]*(cgforce2*disy/r);
+		fz[1004] = fz[1004] + c[0]*c[0]*(cgforce1*disz/r)+c[1]*c[1]*(cgforce2*disz/r);
 
 		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r)-c[1]*c[1]*(cgforce2*disx/r);
 		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r)-c[1]*c[1]*(cgforce2*disy/r);
@@ -1007,22 +1068,25 @@ int main()
 
 		//weigh forces
 
-		fx[1000] = fx[1000]*c[0]*c[1];
-		fy[1000] = fy[1000]*c[0]*c[1];
-		fz[1000] = fz[1000]*c[0]*c[1];
+		fx[1000] = fx[1000]/(2*c[0]*c[1]);
+		fy[1000] = fy[1000]/(2*c[0]*c[1]);
+		fz[1000] = fz[1000]/(2*c[0]*c[1]);
 
-		fx[1002] = fx[1002]*c[0]*c[1];
-		fy[1002] = fy[1002]*c[0]*c[1];
-		fz[1002] = fz[1002]*c[0]*c[1];
+		fx[1002] = fx[1002]/(2*c[0]*c[1]);
+		fy[1002] = fy[1002]/(2*c[0]*c[1]);
+		fz[1002] = fz[1002]/(2*c[0]*c[1]);
 
-		fx[1003] = fx[1003]*c[0]*c[1];
-		fy[1003] = fy[1003]*c[0]*c[1];
-		fz[1003] = fz[1003]*c[0]*c[1];
+		fx[1003] = fx[1003]/(2*c[0]*c[1]);
+		fy[1003] = fy[1003]/(2*c[0]*c[1]);
+		fz[1003] = fz[1003]/(2*c[0]*c[1]);
 		
-		fx[1004] = fx[1004]*c[0]*c[1];
-		fy[1004] = fy[1004]*c[0]*c[1];
-		fz[1004] = fz[1004]*c[0]*c[1];
+		fx[1004] = fx[1004]/(2*c[0]*c[1]);
+		fy[1004] = fy[1004]/(2*c[0]*c[1]);
+		fz[1004] = fz[1004]/(2*c[0]*c[1]);
 
+		for(i=0;i<1005;i++){
+			fprintf(ofp,"%d %d %d %6g %6g %6g %6g %6g %6g\n",i+1,mol[i],type[i],x[i],y[i],z[i],fx[i],fy[i],fz[i]);
+		}
 	}
 
 return 0;
