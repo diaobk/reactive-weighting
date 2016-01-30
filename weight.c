@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 double linear_interp(double, double, double, double, double);
-
+double calc_table_force(double binwidth, double table[], double x);
 double nonreactive_radial_force(double, double, double, double, double, double);
 
 int main()
@@ -110,9 +110,6 @@ int main()
     double r2;
     double s;
     double theta;
-
-    int nonbond_table_bin;
-    int bond_table_bin;
 
     double cgforce0;
     double cgforce1;
@@ -280,7 +277,7 @@ int main()
 
         //				printf("%lf %d\n",r,nonbond_table_bin);
 
-        				cgforce0 = linear_interp(nonbond_table_bin*nonbond_table_binwidth,(nonbond_table_binwidth*nonbond_table_bin+nonbond_table_binwidth),f[11][nonbond_table_bin],f[11][nonbond_table_bin+1],r);
+        				cgforce0 = calc_table_force(nonbond_table_binwidth, f[11], r);
 
         //				printf("%lf\n",cgforce0);
 
@@ -332,15 +329,13 @@ int main()
 
             //total reactive chloride force = total reactive choride force - coefficient * coeffcient * table value for reactive chloride and methanol - coeffcient *coeffcient * table value for bonded chloride and methanol
             if (r < 10.0) {
-                nonbond_table_bin = r / nonbond_table_binwidth;
 
 //			printf("%lf %d\n",r,nonbond_table_bin);
 
-                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_binwidth * nonbond_table_bin + nonbond_table_binwidth), f[0][nonbond_table_bin], f[0][nonbond_table_bin + 1], r);
-                cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_binwidth * nonbond_table_bin + nonbond_table_binwidth), f[2][nonbond_table_bin], f[2][nonbond_table_bin + 1], r);
+                cgforce0 = calc_table_force(nonbond_table_binwidth, f[0], r);
+                cgforce1 = calc_table_force(nonbond_table_binwidth, f[1], r);
 
 //			printf("%lf %lf\n",cgforce0,cgforce1);
-
 
                 fx[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
                 fy[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
@@ -382,9 +377,7 @@ int main()
 
             //total reactive carbon force = total reactive carbon force - coefficient * coeffcient * table value for reactive carbon and methanol - coefficient * coeffcient * table value for reactive carbon and methanol
             if (r < 10.0) {
-                nonbond_table_bin = r / nonbond_table_binwidth;
-
-                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[1][nonbond_table_bin], f[1][nonbond_table_bin + 1], r);
+                cgforce0 = calc_table_force(nonbond_table_binwidth, f[1], r);
                 cgforce1 = cgforce0;
 
                 fx[reactive_c_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
@@ -426,10 +419,8 @@ int main()
 
             //total bonded chlorine force = total bonded chlorine force - coefficient * coeffcient * table value for bonded chlorine and methanol - coeffcient *coeffcient * table value for reactive chlorine  and methanol
             if (r < 10.0) {
-                nonbond_table_bin = r / nonbond_table_binwidth;
-
-                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[2][nonbond_table_bin], f[2][nonbond_table_bin + 1], r);
-                cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[0][nonbond_table_bin], f[0][nonbond_table_bin + 1], r);
+                cgforce0 = calc_table_force(nonbond_table_binwidth, f[2], r);
+                cgforce1 = calc_table_force(nonbond_table_binwidth, f[0], r);
 
                 fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
                 fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
@@ -470,9 +461,7 @@ int main()
 
             //total propyl force = total propyl  force - coefficient * coeffcient * table value for propyl and methanol - coefficient * coeffcient * table value for propyl and methanol
             if (r < 10.0) {
-                nonbond_table_bin = r / nonbond_table_binwidth;
-
-                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[3][nonbond_table_bin], f[3][nonbond_table_bin + 1], r);
+                cgforce0 = calc_table_force(nonbond_table_binwidth, f[3], r);
                 cgforce1 = cgforce0;
 
                 fx[propyl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
@@ -517,10 +506,8 @@ int main()
 //		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
         if (r < 10.0) {
-            nonbond_table_bin = r / nonbond_table_binwidth;
-
-            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[4][nonbond_table_bin], f[4][nonbond_table_bin + 1], r);
-            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[6][nonbond_table_bin], f[6][nonbond_table_bin + 1], r);
+            cgforce0 = calc_table_force(nonbond_table_binwidth, f[4], r);
+            cgforce1 = calc_table_force(nonbond_table_binwidth, f[6], r);
 
             fx[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
             fy[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
@@ -559,9 +546,7 @@ int main()
 //		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
         if (r < 10.0) {
-            nonbond_table_bin = r / nonbond_table_binwidth;
-
-            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_binwidth * nonbond_table_bin + nonbond_table_binwidth), f[5][nonbond_table_bin], f[5][nonbond_table_bin + 1], r);
+            cgforce0 = calc_table_force(nonbond_table_binwidth, f[5], r);
             cgforce1 = cgforce0;
 
             fx[reactive_c_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
@@ -601,10 +586,8 @@ int main()
 //		fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r)
 //		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*di[0]sz/
         if (r < 10.0) {
-            nonbond_table_bin = r / nonbond_table_binwidth;
-
-            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[6][nonbond_table_bin], f[6][nonbond_table_bin + 1], r);
-            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[4][nonbond_table_bin], f[4][nonbond_table_bin + 1], r);
+            cgforce0 = calc_table_force(nonbond_table_binwidth, f[6], r);
+            cgforce1 = calc_table_force(nonbond_table_binwidth, f[4], r);
 
             fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
             fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
@@ -644,11 +627,8 @@ int main()
 //		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
         if (r < 10.0) {
-            nonbond_table_bin = r / nonbond_table_binwidth;
-
-            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[7][nonbond_table_bin], f[7][nonbond_table_bin + 1], r);
+            cgforce0 = calc_table_force(nonbond_table_binwidth, f[7], r);
             cgforce1 = cgforce0;
-
 
             fx[propyl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
             fy[propyl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
@@ -686,11 +666,8 @@ int main()
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
         if (r < 10.0) {
-            nonbond_table_bin = r / nonbond_table_binwidth;
-            bond_table_bin = r / bond_table_binwidth;
-            
-            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[8][nonbond_table_bin], f[8][nonbond_table_bin + 1], r);
-            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, fbond[1][bond_table_bin], fbond[1][bond_table_bin + 1], r);
+            cgforce0 = calc_table_force(nonbond_table_binwidth, f[8], r);
+            cgforce1 = calc_table_force(bond_table_binwidth, fbond[1], r);
 
             fx[reactive_c_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
             fy[reactive_c_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
@@ -733,9 +710,7 @@ int main()
 
 
         if (r < 10.0) {
-            nonbond_table_bin = r / nonbond_table_binwidth;
-
-            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[9][nonbond_table_bin], f[9][nonbond_table_bin + 1], r);
+            cgforce0 = calc_table_force(nonbond_table_binwidth, f[9], r);
             cgforce1 = cgforce0;
 
             fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
@@ -824,11 +799,8 @@ int main()
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
         if (r < 10.0) {
-            nonbond_table_bin = r / nonbond_table_binwidth;
-            bond_table_bin = r / bond_table_binwidth;
-
-            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, fbond[1][bond_table_bin], fbond[1][bond_table_bin + 1], r);
-            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[8][nonbond_table_bin], f[8][nonbond_table_bin + 1], r);
+            cgforce0 = calc_table_force(bond_table_binwidth, fbond[1], r);
+            cgforce0 = calc_table_force(nonbond_table_binwidth, f[8], r);
 
             fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
             fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
@@ -869,9 +841,7 @@ int main()
 
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
-        nonbond_table_bin = r / nonbond_table_binwidth;
-
-        cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, fbond[1][nonbond_table_bin], fbond[1][nonbond_table_bin + 1], r);
+        cgforce0 = calc_table_force(bond_table_binwidth, fbond[1], r);
         cgforce1 = cgforce0;
 
         fx[propyl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
@@ -1107,7 +1077,6 @@ int main()
             fprintf(ofp, "%d %d %d %6g %6g %6g %6g %6g %6g\n", i + 1, mol[i], type[i], x[i], y[i], z[i], fx[i], fy[i], fz[i]);
         }
     }
-
     return 0;
 }
 
@@ -1118,6 +1087,12 @@ double linear_interp(double x0, double x1, double y0, double y1, double x)
 {
     double slope = (y1 - y0) / (x1 - x0);
     return (y0 + (x - x0) * slope);
+}
+
+double calc_table_force(double binwidth, double table[], double x)
+{
+	int xbin = x / binwidth;
+	return linear_interp(xbin * binwidth, (xbin + 1) * binwidth, table[xbin], table[xbin + 1], x);
 }
 
 // General force weighting for the diagonal contribution
