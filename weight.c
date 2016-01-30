@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+void read_force_table(const char*, unsigned, double []);
 double linear_interp(double, double, double, double, double);
 double calc_table_force(double binwidth, double table[], double x);
 double nonreactive_radial_force(double, double, double, double, double, double);
@@ -33,38 +34,10 @@ int main()
 
     FILE *ifp;
     FILE *ifp0;
-    FILE *ifp1;
-    FILE *ifp2;
-    FILE *ifp3;
-    FILE *ifp4;
-    FILE *ifp5;
-    FILE *ifp6;
-    FILE *ifp7;
-    FILE *ifp8;
-    FILE *ifp9;
-    FILE *ifp10;
-    FILE *ifp11;
-    FILE *ifp12;
-    FILE *ifp13;
-    FILE *ifp14;
     FILE *ofp;
 
     ifp = fopen("MeOH_sample1_nobias.cg.dat", "r");
     ifp0 = fopen("coeff.dat", "r");
-    ifp1 = fopen("fmecMeOH_Clion.table", "r");
-    ifp2 = fopen("fmecMeOH_C1.table", "r");
-    ifp3 = fopen("fmecMeOH_ClC.table", "r");
-    ifp4 = fopen("fmecMeOH_C2.table", "r");
-    ifp5 = fopen("fmecClion_Csion.table", "r");
-    ifp6 = fopen("fmecCsion_C1.table", "r");
-    ifp7 = fopen("fmecCsion_ClC.table", "r");
-    ifp8 = fopen("fmecCsion_C2.table", "r");
-    ifp9 = fopen("fmecClion_C1.table", "r");
-    ifp10 = fopen("fmecClion_ClC.table", "r");
-    ifp11 = fopen("fmecClion_C2.table", "r");
-    ifp12 = fopen("fmecC1_ClC_bon.table", "r");
-    ifp13 = fopen("fmecC1_C2_bon.table", "r");
-    ifp14 = fopen("fmecMeOH_MeOH.table", "r");
     ofp = fopen("cg.MeOH_sample_remainder.dat", "w");
 
     const unsigned n_total_beads = 1005;
@@ -135,62 +108,35 @@ int main()
     char buffer[100];
 
     // read in cg force files
+    FILE* table_ifp;
     //MeOH Clion
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp1, "%lf %lf\n", &r, &f[0][i]);
-    }
+    read_force_table("fmecMeOH_Clion.table", 201, f[0]);
     //MeOH C1
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp2, "%lf %lf\n", &r, &f[1][i]);
-    }
+    read_force_table("fmecMeOH_C1.table", 201, f[1]);
     //MeOH ClC
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp3, "%lf %lf\n", &r, &f[2][i]);
-    }
+    read_force_table("fmecMeOH_ClC.table", 201, f[2]);
     //MeOH C2
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp4, "%lf %lf\n", &r, &f[3][i]);
-    }
+    read_force_table("fmecMeOH_C2.table", 201, f[3]);
     //Csion Clion
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp5, "%lf %lf\n", &r, &f[4][i]);
-    }
+    read_force_table("fmecClion_Csion.table", 201, f[4]);
     //Csion C1
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp6, "%lf %lf\n", &r, &f[5][i]);
-    }
+    read_force_table("fmecCsion_C1.table", 201, f[5]);
     //Csion ClC
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp7, "%lf %lf\n", &r, &f[6][i]);
-    }
+    read_force_table("fmecCsion_ClC.table", 201, f[6]);
     //Csion C2
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp8, "%lf %lf\n", &r, &f[7][i]);
-    }
+    read_force_table("fmecCsion_C2.table", 201, f[7]);
     //Clion C1
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp9, "%lf %lf\n", &r, &f[8][i]);
-    }
+    read_force_table("fmecClion_C1.table", 201, f[8]);
     //Clion ClC
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp10, "%lf %lf\n", &r, &f[9][i]);
-    }
+    read_force_table("fmecClion_ClC.table", 201, f[9]);
     //Clion C2
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp11, "%lf %lf\n", &r, &f[10][i]);
-    }
+    read_force_table("fmecClion_C2.table", 201, f[10]);
     //C1 ClC
-    for (i = 0; i < 408; i++) {
-        fscanf(ifp12, "%lf %lf\n", &r, &fbond[0][i]);
-    }
+    read_force_table("fmecC1_ClC_bon.table", 408, fbond[0]);
     //C1 C2
-    for (i = 0; i < 408; i++) {
-        fscanf(ifp13, "%lf %lf\n", &r, &fbond[1][i]);
-    }
+    read_force_table("fmecC1_C2_bon.table", 408, fbond[1]);
     //MeOH MeOH
-    for (i = 0; i < 201; i++) {
-        fscanf(ifp14, "%lf %lf\n", &r, &f[11][i]);
-    }
+    read_force_table("fmecMeOH_MeOH.table", 201, f[11]);
 
     //t is timestep counter
 
@@ -1079,6 +1025,18 @@ int main()
     }
     return 0;
 }
+
+// Read a table of forces.
+void read_force_table(const char* table_name, unsigned table_size, double table_vals[]) {
+	unsigned i;
+	double r;
+	FILE* table_ifp = fopen(table_name, "r");
+    for (i = 0; i < table_size; i++) {
+        fscanf(table_ifp, "%lf %lf\n", &r, &table_vals[i]);
+    }
+    fclose(table_ifp);
+}
+
 
 // Find the value of a function y at point x by linearly
 // interpolating between two points x0 and x1 of a 
