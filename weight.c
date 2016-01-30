@@ -67,23 +67,36 @@ int main()
     ifp14 = fopen("fmecMeOH_MeOH.table", "r");
     ofp = fopen("cg.MeOH_sample_remainder.dat", "w");
 
-    int mol[1005];
-    int type[1005];
-    double mass[1005];
-    double q[1005];
+    const unsigned n_total_beads = 1005;
+    const unsigned n_methanol_beads = 1000;
+    const unsigned reactive_cl_id = 1000;
+    const unsigned positive_ion_id = 1001;
+    const unsigned reactive_c_id = 1002;
+    const unsigned bonded_cl_id = 1003;
+    const unsigned propyl_id = 1004;
 
-    double x[1005];
-    double y[1005];
-    double z[1005];
+    int mol[n_total_beads];
+    int type[n_total_beads];
+    double mass[n_total_beads];
+    double q[n_total_beads];
 
-    double fx[1005];
-    double fy[1005];
-    double fz[1005];
+    double x[n_total_beads];
+    double y[n_total_beads];
+    double z[n_total_beads];
+
+    double fx[n_total_beads];
+    double fy[n_total_beads];
+    double fz[n_total_beads];
 
     double c[2];
 
-    double f[201][12];
-    double fbond[408][2];
+    // Nonbonded force tables
+    double f[12][201];
+    const double nonbond_table_binwidth = 0.05;
+    
+    // Bonded force tables
+    double fbond[2][408];
+    const double bond_table_binwidth = 0.01;
 
     double disx;
     double disy;
@@ -98,11 +111,11 @@ int main()
     double s;
     double theta;
 
-    int r0;
-    int r1;
+    int nonbond_table_bin;
+    int bond_table_bin;
 
+    double cgforce0;
     double cgforce1;
-    double cgforce2;
 
     double a;
     double a11;
@@ -127,59 +140,59 @@ int main()
     // read in cg force files
     //MeOH Clion
     for (i = 0; i < 201; i++) {
-        fscanf(ifp1, "%lf %lf\n", &r, &f[i][0]);
+        fscanf(ifp1, "%lf %lf\n", &r, &f[0][i]);
     }
     //MeOH C1
     for (i = 0; i < 201; i++) {
-        fscanf(ifp2, "%lf %lf\n", &r, &f[i][1]);
+        fscanf(ifp2, "%lf %lf\n", &r, &f[1][i]);
     }
     //MeOH ClC
     for (i = 0; i < 201; i++) {
-        fscanf(ifp3, "%lf %lf\n", &r, &f[i][2]);
+        fscanf(ifp3, "%lf %lf\n", &r, &f[2][i]);
     }
     //MeOH C2
     for (i = 0; i < 201; i++) {
-        fscanf(ifp4, "%lf %lf\n", &r, &f[i][3]);
+        fscanf(ifp4, "%lf %lf\n", &r, &f[3][i]);
     }
     //Csion Clion
     for (i = 0; i < 201; i++) {
-        fscanf(ifp5, "%lf %lf\n", &r, &f[i][4]);
+        fscanf(ifp5, "%lf %lf\n", &r, &f[4][i]);
     }
     //Csion C1
     for (i = 0; i < 201; i++) {
-        fscanf(ifp6, "%lf %lf\n", &r, &f[i][5]);
+        fscanf(ifp6, "%lf %lf\n", &r, &f[5][i]);
     }
     //Csion ClC
     for (i = 0; i < 201; i++) {
-        fscanf(ifp7, "%lf %lf\n", &r, &f[i][6]);
+        fscanf(ifp7, "%lf %lf\n", &r, &f[6][i]);
     }
     //Csion C2
     for (i = 0; i < 201; i++) {
-        fscanf(ifp8, "%lf %lf\n", &r, &f[i][7]);
+        fscanf(ifp8, "%lf %lf\n", &r, &f[7][i]);
     }
     //Clion C1
     for (i = 0; i < 201; i++) {
-        fscanf(ifp9, "%lf %lf\n", &r, &f[i][8]);
+        fscanf(ifp9, "%lf %lf\n", &r, &f[8][i]);
     }
     //Clion ClC
     for (i = 0; i < 201; i++) {
-        fscanf(ifp10, "%lf %lf\n", &r, &f[i][9]);
+        fscanf(ifp10, "%lf %lf\n", &r, &f[9][i]);
     }
     //Clion C2
     for (i = 0; i < 201; i++) {
-        fscanf(ifp11, "%lf %lf\n", &r, &f[i][10]);
+        fscanf(ifp11, "%lf %lf\n", &r, &f[10][i]);
     }
     //C1 ClC
     for (i = 0; i < 408; i++) {
-        fscanf(ifp12, "%lf %lf\n", &r, &fbond[i][0]);
+        fscanf(ifp12, "%lf %lf\n", &r, &fbond[0][i]);
     }
     //C1 C2
     for (i = 0; i < 408; i++) {
-        fscanf(ifp13, "%lf %lf\n", &r, &fbond[i][1]);
+        fscanf(ifp13, "%lf %lf\n", &r, &fbond[1][i]);
     }
     //MeOH MeOH
     for (i = 0; i < 201; i++) {
-        fscanf(ifp14, "%lf %lf\n", &r, &f[i][11]);
+        fscanf(ifp14, "%lf %lf\n", &r, &f[11][i]);
     }
 
     //t is timestep counter
@@ -226,7 +239,7 @@ int main()
         printf("%f\n", box - nbox);
         //printf("%f\n",nbox);
 
-        for (i = 0; i < 1005; i++) {
+        for (i = 0; i < n_total_beads; i++) {
 
             //read in coordinates
 
@@ -234,7 +247,7 @@ int main()
         }
         /*
         		for(i=0;i<999;i++){
-        			for(j=i+1;j<1000;j++){
+        			for(j=i+1;j<n_methanol_beads;j++){
 
         				disx = x[i]-x[j];
         				disy = y[i]-y[j];
@@ -263,32 +276,32 @@ int main()
 
 
         				if( r < 10.0){
-        				r0 = r/0.05;
+        				nonbond_table_bin = r/nonbond_table_binwidth;
 
-        //				printf("%lf %d\n",r,r0);
+        //				printf("%lf %d\n",r,nonbond_table_bin);
 
-        				cgforce1 = linear_interp(r0*0.05,(0.05*r0+0.05),f[r0][11],f[r0+1][11],r);
+        				cgforce0 = linear_interp(nonbond_table_bin*nonbond_table_binwidth,(nonbond_table_binwidth*nonbond_table_bin+nonbond_table_binwidth),f[11][nonbond_table_bin],f[11][nonbond_table_bin+1],r);
 
-        //				printf("%lf\n",cgforce1);
+        //				printf("%lf\n",cgforce0);
 
-        				fx[j] = fx[j] + (cgforce1*disx/r);
-        				fy[j] = fy[j] + (cgforce1*disy/r);
-        				fz[j] = fz[j] + (cgforce1*disz/r);
+        				fx[j] = fx[j] + (cgforce0*disx/r);
+        				fy[j] = fy[j] + (cgforce0*disy/r);
+        				fz[j] = fz[j] + (cgforce0*disz/r);
 
-        				fx[i] = fx[i] - (cgforce1*disx/r);
-        				fy[i] = fy[i] - (cgforce1*disy/r);
-        				fz[i] = fz[i] - (cgforce1*disz/r);
+        				fx[i] = fx[i] - (cgforce0*disx/r);
+        				fy[i] = fy[i] - (cgforce0*disy/r);
+        				fz[i] = fz[i] - (cgforce0*disz/r);
         				}
         			}
         		}
         */
-        for (i = 0; i < 1000; i++) {
+        for (i = 0; i < n_methanol_beads; i++) {
 
             //calculate distance between methanol and reactive chloride.
 
-            disx = x[i] - x[1000];
-            disy = y[i] - y[1000];
-            disz = z[i] - z[1000];
+            disx = x[i] - x[reactive_cl_id];
+            disy = y[i] - y[reactive_cl_id];
+            disz = z[i] - z[reactive_cl_id];
 
             //periodic boundary conditions
 
@@ -313,34 +326,34 @@ int main()
 
             r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r);
-//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r);
-//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r);
+//			fx[i] = fx[i] - c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r);
+//			fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r);
+//			fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r);
 
             //total reactive chloride force = total reactive choride force - coefficient * coeffcient * table value for reactive chloride and methanol - coeffcient *coeffcient * table value for bonded chloride and methanol
             if (r < 10.0) {
-                r0 = r / 0.05;
+                nonbond_table_bin = r / nonbond_table_binwidth;
 
-//			printf("%lf %d\n",r,r0);
+//			printf("%lf %d\n",r,nonbond_table_bin);
 
-                cgforce1 = linear_interp(r0 * 0.05, (0.05 * r0 + 0.05), f[r0][0], f[r0 + 1][0], r);
-                cgforce2 = linear_interp(r0 * 0.05, (0.05 * r0 + 0.05), f[r0][2], f[r0 + 1][2], r);
+                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_binwidth * nonbond_table_bin + nonbond_table_binwidth), f[0][nonbond_table_bin], f[0][nonbond_table_bin + 1], r);
+                cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_binwidth * nonbond_table_bin + nonbond_table_binwidth), f[2][nonbond_table_bin], f[2][nonbond_table_bin + 1], r);
 
-//			printf("%lf %lf\n",cgforce1,cgforce2);
+//			printf("%lf %lf\n",cgforce0,cgforce1);
 
 
-                fx[1000] = fx[1000] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-                fy[1000] = fy[1000] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-                fz[1000] = fz[1000] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+                fx[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+                fy[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+                fz[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
             }
 
 ///////////////////////////////////////////
 
             //methanol and reactive carbon bead
 
-            disx = x[i] - x[1002];
-            disy = y[i] - y[1002];
-            disz = z[i] - z[1002];
+            disx = x[i] - x[reactive_c_id];
+            disy = y[i] - y[reactive_c_id];
+            disz = z[i] - z[reactive_c_id];
 
             if (disx > (box - nbox) / 2.0) {
                 disx = disx - (box - nbox);
@@ -363,29 +376,28 @@ int main()
 
             r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r);
-//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r);
-//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r);
+//			fx[i] = fx[i] - c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r);
+//			fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r);
+//			fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r);
 
             //total reactive carbon force = total reactive carbon force - coefficient * coeffcient * table value for reactive carbon and methanol - coefficient * coeffcient * table value for reactive carbon and methanol
             if (r < 10.0) {
-                r0 = r / 0.05;
+                nonbond_table_bin = r / nonbond_table_binwidth;
 
-                cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][1], f[r0 + 1][1], r);
-                cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][1], f[r0 + 1][1], r);
+                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[1][nonbond_table_bin], f[1][nonbond_table_bin + 1], r);
+                cgforce1 = cgforce0;
 
-
-                fx[1002] = fx[1002] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-                fy[1002] = fy[1002] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-                fz[1002] = fz[1002] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+                fx[reactive_c_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+                fy[reactive_c_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+                fz[reactive_c_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
             }
 ///////////////////////////////////////////
 
             //calculate distance between methanol and bonded chloride
 
-            disx = x[i] - x[1003];
-            disy = y[i] - y[1003];
-            disz = z[i] - z[1003];
+            disx = x[i] - x[bonded_cl_id];
+            disy = y[i] - y[bonded_cl_id];
+            disz = z[i] - z[bonded_cl_id];
 
             if (disx > (box - nbox) / 2.0) {
                 disx = disx - (box - nbox);
@@ -408,29 +420,28 @@ int main()
 
             r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
+//			fx[i] = fx[i] - c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r)
+//			fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r)
+//			fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
             //total bonded chlorine force = total bonded chlorine force - coefficient * coeffcient * table value for bonded chlorine and methanol - coeffcient *coeffcient * table value for reactive chlorine  and methanol
             if (r < 10.0) {
-                r0 = r / 0.05;
+                nonbond_table_bin = r / nonbond_table_binwidth;
 
-                cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][2], f[r0 + 1][2], r);
-                cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][0], f[r0 + 1][0], r);
+                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[2][nonbond_table_bin], f[2][nonbond_table_bin + 1], r);
+                cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[0][nonbond_table_bin], f[0][nonbond_table_bin + 1], r);
 
-
-                fx[1003] = fx[1003] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-                fy[1003] = fy[1003] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-                fz[1003] = fz[1003] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+                fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+                fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+                fz[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
             }
 /////////////////////////////////////////////
 
             //methanol and propyl bead
 
-            disx = x[i] - x[1004];
-            disy = y[i] - y[1004];
-            disz = z[i] - z[1004];
+            disx = x[i] - x[propyl_id];
+            disy = y[i] - y[propyl_id];
+            disz = z[i] - z[propyl_id];
 
             if (disx > (box - nbox) / 2.0) {
                 disx = disx - (box - nbox);
@@ -453,21 +464,20 @@ int main()
 
             r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//			fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//			fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//			fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
+//			fx[i] -= c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r)
+//			fy[i] -= c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r)
+//			fz[i] -= c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
             //total propyl force = total propyl  force - coefficient * coeffcient * table value for propyl and methanol - coefficient * coeffcient * table value for propyl and methanol
             if (r < 10.0) {
-                r0 = r / 0.05;
+                nonbond_table_bin = r / nonbond_table_binwidth;
 
-                cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][3], f[r0 + 1][3], r);
-                cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][3], f[r0 + 1][3], r);
+                cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[3][nonbond_table_bin], f[3][nonbond_table_bin + 1], r);
+                cgforce1 = cgforce0;
 
-
-                fx[1004] = fx[1004] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-                fy[1004] = fy[1004] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-                fz[1004] = fz[1004] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+                fx[propyl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+                fy[propyl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+                fz[propyl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
             }
         }
 
@@ -475,9 +485,9 @@ int main()
 
         //positive ion and reactive chloride
 
-        disx = x[1001] - x[1000];
-        disy = y[1001] - y[1000];
-        disz = z[1001] - z[1000];
+        disx = x[positive_ion_id] - x[reactive_cl_id];
+        disy = y[positive_ion_id] - y[reactive_cl_id];
+        disz = z[positive_ion_id] - z[reactive_cl_id];
 
         //periodic boundary conditions
 
@@ -502,28 +512,27 @@ int main()
 
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//		fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
+//		fx[i] = fx[i] - c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r)
+//		fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r)
+//		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
         if (r < 10.0) {
-            r0 = r / 0.05;
+            nonbond_table_bin = r / nonbond_table_binwidth;
 
-            cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][4], f[r0 + 1][4], r);
-            cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][6], f[r0 + 1][6], r);
+            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[4][nonbond_table_bin], f[4][nonbond_table_bin + 1], r);
+            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[6][nonbond_table_bin], f[6][nonbond_table_bin + 1], r);
 
-
-            fx[1000] = fx[1000] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1000] = fy[1000] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1000] = fz[1000] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+            fx[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
 
         //positive ion and reactive carbon bead
 
-        disx = x[1001] - x[1002];
-        disy = y[1001] - y[1002];
-        disz = z[1001] - z[1002];
+        disx = x[positive_ion_id] - x[reactive_c_id];
+        disy = y[positive_ion_id] - y[reactive_c_id];
+        disz = z[positive_ion_id] - z[reactive_c_id];
 
         if (disx > (box - nbox) / 2.0) {
             disx = disx - (box - nbox);
@@ -545,28 +554,27 @@ int main()
         }
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//		fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
+//		fx[i] = fx[i] - c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r)
+//		fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r)
+//		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
         if (r < 10.0) {
-            r0 = r / 0.05;
+            nonbond_table_bin = r / nonbond_table_binwidth;
 
-            cgforce1 = linear_interp(r0 * 0.05, (0.05 * r0 + 0.05), f[r0][5], f[r0 + 1][5], r);
-            cgforce2 = linear_interp(r0 * 0.05, (0.05 * r0 + 0.05), f[r0][5], f[r0 + 1][5], r);
+            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_binwidth * nonbond_table_bin + nonbond_table_binwidth), f[5][nonbond_table_bin], f[5][nonbond_table_bin + 1], r);
+            cgforce1 = cgforce0;
 
-
-            fx[1002] = fx[1002] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1002] = fy[1002] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1002] = fz[1002] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+            fx[reactive_c_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_c_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_c_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
 
         //positive ion and bonded chlorine
 
-        disx = x[1001] - x[1003];
-        disy = y[1001] - y[1003];
-        disz = z[1001] - z[1003];
+        disx = x[positive_ion_id] - x[bonded_cl_id];
+        disy = y[positive_ion_id] - y[bonded_cl_id];
+        disz = z[positive_ion_id] - z[bonded_cl_id];
 
         if (disx > (box - nbox) / 2.0) {
             disx = disx - (box - nbox);
@@ -589,27 +597,26 @@ int main()
 
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//		fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
-
+//		fx[i] = fx[i] - c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r)
+//		fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r)
+//		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*di[0]sz/
         if (r < 10.0) {
-            r0 = r / 0.05;
+            nonbond_table_bin = r / nonbond_table_binwidth;
 
-            cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][6], f[r0 + 1][6], r);
-            cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][4], f[r0 + 1][4], r);
+            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[6][nonbond_table_bin], f[6][nonbond_table_bin + 1], r);
+            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[4][nonbond_table_bin], f[4][nonbond_table_bin + 1], r);
 
-            fx[1003] = fx[1003] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1003] = fy[1003] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1003] = fz[1003] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+            fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+            fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+            fz[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
 
         //positive ion and propyl bead
 
-        disx = x[1001] - x[1004];
-        disy = y[1001] - y[1004];
-        disz = z[1001] - z[1004];
+        disx = x[positive_ion_id] - x[propyl_id];
+        disy = y[positive_ion_id] - y[propyl_id];
+        disz = z[positive_ion_id] - z[propyl_id];
 
         if (disx > (box - nbox) / 2.0) {
             disx = disx - (box - nbox);
@@ -632,28 +639,28 @@ int main()
 
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
-//		fx[i] = fx[i] - c[t][0]*(f[r][0]*disx/r)-c[t][1](f[r][0]*disx/r)
-//		fy[i] = fy[i] - c[t][0]*(f[r][0]*disy/r)-c[t][1](f[r][0]*disy/r)
-//		fz[i] = fz[i] - c[t][0]*(f[r][0]*disz/r)-c[t][1](f[r][0]*disz/r)
+//		fx[i] = fx[i] - c[t][0]*(f[0][r]*disx/r)-c[t][1](f[0][r]*disx/r)
+//		fy[i] = fy[i] - c[t][0]*(f[0][r]*disy/r)-c[t][1](f[0][r]*disy/r)
+//		fz[i] = fz[i] - c[t][0]*(f[0][r]*disz/r)-c[t][1](f[0][r]*disz/r)
 
         if (r < 10.0) {
-            r0 = r / 0.05;
+            nonbond_table_bin = r / nonbond_table_binwidth;
 
-            cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][7], f[r0 + 1][7], r);
-            cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][7], f[r0 + 1][7], r);
+            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[7][nonbond_table_bin], f[7][nonbond_table_bin + 1], r);
+            cgforce1 = cgforce0;
 
 
-            fx[1004] = fx[1004] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1004] = fy[1004] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1004] = fz[1004] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+            fx[propyl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+            fy[propyl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+            fz[propyl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
 
         //reactive chloride with reactive carbon bead
 
-        disx = x[1000] - x[1002];
-        disy = y[1000] - y[1002];
-        disz = z[1000] - z[1002];
+        disx = x[reactive_cl_id] - x[reactive_c_id];
+        disy = y[reactive_cl_id] - y[reactive_c_id];
+        disz = z[reactive_cl_id] - z[reactive_c_id];
 
         //periodic boundary conditions
 
@@ -679,27 +686,27 @@ int main()
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
         if (r < 10.0) {
-            r0 = r / 0.05;
-            r1 = r / 0.01;
-            cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][8], f[r0 + 1][8], r);
-            // Thomas, this line looks incorrect--could it be 'fbond[r1 + 1][1]' or 'fbond[r1 + 1][0]'?
-            cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), fbond[r1][1], fbond[r1 + 1][10], r);
+            nonbond_table_bin = r / nonbond_table_binwidth;
+            bond_table_bin = r / bond_table_binwidth;
+            
+            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[8][nonbond_table_bin], f[8][nonbond_table_bin + 1], r);
+            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, fbond[1][bond_table_bin], fbond[1][bond_table_bin + 1], r);
 
-            fx[1002] = fx[1002] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1002] = fy[1002] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1002] = fz[1002] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
+            fx[reactive_c_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_c_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_c_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
 
-            fx[1000] = fx[1000] - c[0] * c[0] * (cgforce1 * disx / r) - c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1000] = fy[1000] - c[0] * c[0] * (cgforce1 * disy / r) - c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1000] = fz[1000] - c[0] * c[0] * (cgforce1 * disz / r) - c[1] * c[1] * (cgforce2 * disz / r);
+            fx[reactive_cl_id] += - c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_cl_id] += - c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_cl_id] += - c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
 
         //reactive chloride with bonded chloride
 
-        disx = x[1000] - x[1003];
-        disy = y[1000] - y[1003];
-        disz = z[1000] - z[1003];
+        disx = x[reactive_cl_id] - x[bonded_cl_id];
+        disy = y[reactive_cl_id] - y[bonded_cl_id];
+        disz = z[reactive_cl_id] - z[bonded_cl_id];
 
         //periodic boundary conditions
 
@@ -726,27 +733,26 @@ int main()
 
 
         if (r < 10.0) {
-            r0 = r / 0.05;
+            nonbond_table_bin = r / nonbond_table_binwidth;
 
-            cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][9], f[r0 + 1][9], r);
-            cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][9], f[r0 + 1][9], r);
+            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[9][nonbond_table_bin], f[9][nonbond_table_bin + 1], r);
+            cgforce1 = cgforce0;
 
+            fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+            fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+            fz[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
 
-            fx[1003] = fx[1003] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1003] = fy[1003] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1003] = fz[1003] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
-
-            fx[1000] = fx[1000] - c[0] * c[0] * (cgforce1 * disx / r) - c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1000] = fy[1000] - c[0] * c[0] * (cgforce1 * disy / r) - c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1000] = fz[1000] - c[0] * c[0] * (cgforce1 * disz / r) - c[1] * c[1] * (cgforce2 * disz / r);
+            fx[reactive_cl_id] -= c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_cl_id] -= c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_cl_id] -= c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
         /*
         		//reactive chloride with propyl bead
 
-        		disx = x[1000]-x[1004];
-        		disy = y[1000]-y[1004];
-        		disz = z[1000]-z[1004];
+        		disx = x[reactive_cl_id]-x[propyl_id];
+        		disy = y[reactive_cl_id]-y[propyl_id];
+        		disz = z[reactive_cl_id]-z[propyl_id];
 
         		//periodic boundary conditions
 
@@ -773,28 +779,26 @@ int main()
 
 
         		if( r < 10.0){
-        		r0 = r/0.05;
+        		nonbond_table_bin = r/nonbond_table_binwidth;
 
-        		cgforce1 = linear_interp(r0,(r0+0.05),f[r0][9],f[r0+1][9],r);
+        		cgforce0 = linear_interp(nonbond_table_bin,(nonbond_table_bin+nonbond_table_binwidth),f[9][nonbond_table_bin],f[9][nonbond_table_bin+1],r);
 
+        		fx[reactive_cl_id] = fx[reactive_cl_id] + c[0]*c[0]*(cgforce0*disx/r);
+        		fy[reactive_cl_id] = fy[reactive_cl_id] + c[0]*c[0]*(cgforce0*disy/r);
+        		fz[reactive_cl_id] = fz[reactive_cl_id] + c[0]*c[0]*(cgforce0*disz/r);
 
-
-        		fx[1000] = fx[1000] + c[0]*c[0]*(cgforce1*disx/r);
-        		fy[1000] = fy[1000] + c[0]*c[0]*(cgforce1*disy/r);
-        		fz[1000] = fz[1000] + c[0]*c[0]*(cgforce1*disz/r);
-
-        		fx[1002] = fx[1002] - c[0]*c[0]*(cgforce1*disx/r);
-        		fy[1002] = fy[1002] - c[0]*c[0]*(cgforce1*disy/r);
-        		fz[1002] = fz[1002] - c[0]*c[0]*(cgforce1*disz/r);
+        		fx[reactive_c_id] = fx[reactive_c_id] - c[0]*c[0]*(cgforce0*disx/r);
+        		fy[reactive_c_id] = fy[reactive_c_id] - c[0]*c[0]*(cgforce0*disy/r);
+        		fz[reactive_c_id] = fz[reactive_c_id] - c[0]*c[0]*(cgforce0*disz/r);
         		}
         */
 ///////////////////////////////////////////
 
         //reactive carbon and bonded chloride
 
-        disx = x[1002] - x[1003];
-        disy = y[1002] - y[1003];
-        disz = z[1002] - z[1003];
+        disx = x[reactive_c_id] - x[bonded_cl_id];
+        disy = y[reactive_c_id] - y[bonded_cl_id];
+        disz = z[reactive_c_id] - z[bonded_cl_id];
 
         //periodic boundary conditions
 
@@ -820,28 +824,27 @@ int main()
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
         if (r < 10.0) {
-            r0 = r / 0.05;
-            r1 = r / 0.01;
+            nonbond_table_bin = r / nonbond_table_binwidth;
+            bond_table_bin = r / bond_table_binwidth;
 
-            cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), fbond[r1][1], fbond[r1 + 1][1], r);
-            cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), f[r0][8], f[r0 + 1][8], r);
+            cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, fbond[1][bond_table_bin], fbond[1][bond_table_bin + 1], r);
+            cgforce1 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, f[8][nonbond_table_bin], f[8][nonbond_table_bin + 1], r);
 
+            fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+            fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+            fz[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
 
-            fx[1003] = fx[1003] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1003] = fy[1003] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1003] = fz[1003] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
-
-            fx[1002] = fx[1002] - c[0] * c[0] * (cgforce1 * disx / r) - c[1] * c[1] * (cgforce2 * disx / r);
-            fy[1002] = fy[1002] - c[0] * c[0] * (cgforce1 * disy / r) - c[1] * c[1] * (cgforce2 * disy / r);
-            fz[1002] = fz[1002] - c[0] * c[0] * (cgforce1 * disz / r) - c[1] * c[1] * (cgforce2 * disz / r);
+            fx[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
 
         //reactive carbon and propyl
 
-        disx = x[1002] - x[1004];
-        disy = y[1002] - y[1004];
-        disz = z[1002] - z[1004];
+        disx = x[reactive_c_id] - x[propyl_id];
+        disy = y[reactive_c_id] - y[propyl_id];
+        disz = z[reactive_c_id] - z[propyl_id];
 
         //periodic boundary conditions
 
@@ -866,27 +869,26 @@ int main()
 
         r = sqrt(disx * disx + disy * disy + disz * disz);
 
-        r0 = r / 0.05;
+        nonbond_table_bin = r / nonbond_table_binwidth;
 
-        cgforce1 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), fbond[r0][1], fbond[r0 + 1][1], r);
-        cgforce2 = linear_interp(r0 * 0.05, (r0 * 0.05 + 0.05), fbond[r0][1], fbond[r0 + 1][1], r);
+        cgforce0 = linear_interp(nonbond_table_bin * nonbond_table_binwidth, (nonbond_table_bin + 1) * nonbond_table_binwidth, fbond[1][nonbond_table_bin], fbond[1][nonbond_table_bin + 1], r);
+        cgforce1 = cgforce0;
 
+        fx[propyl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
+        fy[propyl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
+        fz[propyl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
 
-        fx[1004] = fx[1004] + c[0] * c[0] * (cgforce1 * disx / r) + c[1] * c[1] * (cgforce2 * disx / r);
-        fy[1004] = fy[1004] + c[0] * c[0] * (cgforce1 * disy / r) + c[1] * c[1] * (cgforce2 * disy / r);
-        fz[1004] = fz[1004] + c[0] * c[0] * (cgforce1 * disz / r) + c[1] * c[1] * (cgforce2 * disz / r);
-
-        fx[1002] = fx[1002] - c[0] * c[0] * (cgforce1 * disx / r) - c[1] * c[1] * (cgforce2 * disx / r);
-        fy[1002] = fy[1002] - c[0] * c[0] * (cgforce1 * disy / r) - c[1] * c[1] * (cgforce2 * disy / r);
-        fz[1002] = fz[1002] - c[0] * c[0] * (cgforce1 * disz / r) - c[1] * c[1] * (cgforce2 * disz / r);
+        fx[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
+        fy[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
+        fz[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
 
 ///////////////////////////////////////////
         /*
         		//bonded chloride and propyl
 
-        		disx = x[1003]-x[1004];
-        		disy = y[1003]-y[1004];
-        		disz = z[1003]-z[1004];
+        		disx = x[bonded_cl_id]-x[propyl_id];
+        		disy = y[bonded_cl_id]-y[propyl_id];
+        		disz = z[bonded_cl_id]-z[propyl_id];
 
         		//periodic boundary conditions
 
@@ -913,18 +915,18 @@ int main()
 
         		if( r < 10.0){
 
-        		r0=r/0.05;
+        		nonbond_table_bin=r/nonbond_table_binwidth;
 
-        		cgforce2 = linear_interp(r0,(r0+0.05),fbond[r0][1],fbond[r0+1][1],r)
+        		cgforce1 = linear_interp(nonbond_table_bin,(nonbond_table_bin+nonbond_table_binwidth),fbond[1][nonbond_table_bin],fbond[1][nonbond_table_bin+1],r)
 
 
-        		fx[1003] = fx[1003]-c[1]*c[1]*(cgforce2*disx/r);
-        		fy[1003] = fy[1003]-c[1]*c[1]*(cgforce2*disy/r);
-        		fz[1003] = fz[1003]-c[1]*c[1]*(cgforce2*disz/r);
+        		fx[bonded_cl_id] -= c[1]*c[1]*(cgforce1*disx/r);
+        		fy[bonded_cl_id] -= c[1]*c[1]*(cgforce1*disy/r);
+        		fz[bonded_cl_id] -= c[1]*c[1]*(cgforce1*disz/r);
 
-        		fx[1004] = fx[1004]+c[1]*c[1]*(cgforce2*disx/r);
-        		fy[1004] = fy[1004]+c[1]*c[1]*(cgforce2*disy/r);
-        		fz[1004] = fz[1004]+c[1]*c[1]*(cgforce2*disz/r);
+        		fx[propyl_id] += c[1]*c[1]*(cgforce1*disx/r);
+        		fy[propyl_id] += c[1]*c[1]*(cgforce1*disy/r);
+        		fz[propyl_id] += c[1]*c[1]*(cgforce1*disz/r);
         		}
         */
 ///////////////////////////////////////////
@@ -932,13 +934,13 @@ int main()
 
         		//angle with reactive
 
-        		disx = x[1000]-x[1002];
-        		disy = y[1000]-y[1002];
-        		disz = z[1000]-z[1002];
+        		disx = x[reactive_cl_id]-x[reactive_c_id];
+        		disy = y[reactive_cl_id]-y[reactive_c_id];
+        		disz = z[reactive_cl_id]-z[reactive_c_id];
 
-        		disx2 = x[1004]-x[1002];
-        		disy2 = y[1004]-y[1002];
-        		disz2 = z[1004]-z[1002];
+        		disx2 = x[propyl_id]-x[reactive_c_id];
+        		disy2 = y[propyl_id]-y[reactive_c_id];
+        		disz2 = z[propyl_id]-z[reactive_c_id];
 
         		if(disx > (box-nbox)/2.0){
         			disx = disx - (box-nbox);
@@ -993,29 +995,29 @@ int main()
         		a12 = -a / (r*r2);
         		a22 = a*dot / (r2*r3);
 
-        		fx[1000] = fx[1000] - c[0]*c[0]*(a11*delx + a12*delx2);
-        		fy[1000] = fy[1000] - c[0]*c[0]*(a11*dely + a12*dely2);
-        		fz[1000] = fz[1000] - c[0]*c[0]*(a11*delz + a12*delz2);
+        		fx[reactive_cl_id] -= c[0]*c[0]*(a11*delx + a12*delx2);
+        		fy[reactive_cl_id] -= c[0]*c[0]*(a11*dely + a12*dely2);
+        		fz[reactive_cl_id] -= c[0]*c[0]*(a11*delz + a12*delz2);
 
-        		fx[1002] = fx[1002] + c[0]*c[0]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
-        		fy[1002] = fy[1002] + c[0]*c[0]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
-        		fz[1002] = fz[1002] + c[0]*c[0]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
+        		fx[reactive_c_id] += c[0]*c[0]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
+        		fy[reactive_c_id] += c[0]*c[0]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
+        		fz[reactive_c_id] += c[0]*c[0]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
 
-        		fx[1004] = fx[1004] - c[0]*c[0]*(a22*delx2 + a12*delx);
-        		fy[1004] = fy[1004] - c[0]*c[0]*(a22*dely2 + a12*dely);
-        		fz[1004] = fz[1004] - c[0]*c[0]*(a22*delz2 + a12*delz);
+        		fx[propyl_id] -= c[0]*c[0]*(a22*delx2 + a12*delx);
+        		fy[propyl_id] -= c[0]*c[0]*(a22*dely2 + a12*dely);
+        		fz[propyl_id] -= c[0]*c[0]*(a22*delz2 + a12*delz);
 
         ////////////////////////////////
 
         		//angle with bonded
 
-        		disx = x[1003]-x[1002];
-        		disy = y[1003]-y[1002];
-        		disz = z[1003]-z[1002];
+        		disx = x[bonded_cl_id]-x[reactive_c_id];
+        		disy = y[bonded_cl_id]-y[reactive_c_id];
+        		disz = z[bonded_cl_id]-z[reactive_c_id];
 
-        		disx2 = x[1004]-x[1002];
-        		disy2 = y[1004]-y[1002];
-        		disz2 = z[1004]-z[1002];
+        		disx2 = x[propyl_id]-x[reactive_c_id];
+        		disy2 = y[propyl_id]-y[reactive_c_id];
+        		disz2 = z[propyl_id]-z[reactive_c_id];
 
         		if(disx > (box-nbox)/2.0){
         			disx = disx - (box-nbox);
@@ -1070,38 +1072,38 @@ int main()
         		a12 = -a / (r*r2);
         		a22 = a*dot / (r2*r3);
 
-        		fx[1003] = fx[1003] - c[1]*c[1]*(a11*delx + a12*delx2);
-        		fy[1003] = fy[1003] - c[1]*c[1]*(a11*dely + a12*dely2);
-        		fz[1003] = fz[1003] - c[1]*c[1]*(a11*delz + a12*delz2);
+        		fx[bonded_cl_id] = fx[bonded_cl_id] - c[1]*c[1]*(a11*delx + a12*delx2);
+        		fy[bonded_cl_id] = fy[bonded_cl_id] - c[1]*c[1]*(a11*dely + a12*dely2);
+        		fz[bonded_cl_id] = fz[bonded_cl_id] - c[1]*c[1]*(a11*delz + a12*delz2);
 
-        		fx[1002] = fx[1002] + c[1]*c[1]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
-        		fy[1002] = fy[1002] + c[1]*c[1]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
-        		fz[1002] = fz[1002] + c[1]*c[1]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
+        		fx[reactive_c_id] = fx[reactive_c_id] + c[1]*c[1]*(a11*delx + a12*delx2 + a22*delx2 + a12*delx);
+        		fy[reactive_c_id] = fy[reactive_c_id] + c[1]*c[1]*(a11*dely + a12*dely2 + a22*dely2 + a12*dely);
+        		fz[reactive_c_id] = fz[reactive_c_id] + c[1]*c[1]*(a11*delz + a12*delz2 + a22*delz2 + a12*delz);
 
-        		fx[1004] = fx[1004] - c[1]*c[1]*(a22*delx2 + a12*delx);
-        		fy[1004] = fy[1004] - c[1]*c[1]*(a22*dely2 + a12*dely);
-        		fz[1004] = fz[1004] - c[1]*c[1]*(a22*delz2 + a12*delz);
+        		fx[propyl_id] = fx[propyl_id] - c[1]*c[1]*(a22*delx2 + a12*delx);
+        		fy[propyl_id] = fy[propyl_id] - c[1]*c[1]*(a22*dely2 + a12*dely);
+        		fz[propyl_id] = fz[propyl_id] - c[1]*c[1]*(a22*delz2 + a12*delz);
         */
 
-        //weigh forces
+        // Weight forces by the product of the state weights.
 
-        fx[1000] = fx[1000] / (2 * c[0] * c[1]);
-        fy[1000] = fy[1000] / (2 * c[0] * c[1]);
-        fz[1000] = fz[1000] / (2 * c[0] * c[1]);
+        fx[reactive_cl_id] /= (2 * c[0] * c[1]);
+        fy[reactive_cl_id] /= (2 * c[0] * c[1]);
+        fz[reactive_cl_id] /= (2 * c[0] * c[1]);
 
-        fx[1002] = fx[1002] / (2 * c[0] * c[1]);
-        fy[1002] = fy[1002] / (2 * c[0] * c[1]);
-        fz[1002] = fz[1002] / (2 * c[0] * c[1]);
+        fx[reactive_c_id] /= (2 * c[0] * c[1]);
+        fy[reactive_c_id] /= (2 * c[0] * c[1]);
+        fz[reactive_c_id] /= (2 * c[0] * c[1]);
 
-        fx[1003] = fx[1003] / (2 * c[0] * c[1]);
-        fy[1003] = fy[1003] / (2 * c[0] * c[1]);
-        fz[1003] = fz[1003] / (2 * c[0] * c[1]);
+        fx[bonded_cl_id] /= (2 * c[0] * c[1]);
+        fy[bonded_cl_id] /= (2 * c[0] * c[1]);
+        fz[bonded_cl_id] /= (2 * c[0] * c[1]);
 
-        fx[1004] = fx[1004] / (2 * c[0] * c[1]);
-        fy[1004] = fy[1004] / (2 * c[0] * c[1]);
-        fz[1004] = fz[1004] / (2 * c[0] * c[1]);
+        fx[propyl_id] /= (2 * c[0] * c[1]);
+        fy[propyl_id] /= (2 * c[0] * c[1]);
+        fz[propyl_id] /= (2 * c[0] * c[1]);
 
-        for (i = 0; i < 1005; i++) {
+        for (i = 0; i < n_total_beads; i++) {
             fprintf(ofp, "%d %d %d %6g %6g %6g %6g %6g %6g\n", i + 1, mol[i], type[i], x[i], y[i], z[i], fx[i], fy[i], fz[i]);
         }
     }
@@ -1109,18 +1111,18 @@ int main()
     return 0;
 }
 
+// Find the value of a function y at point x by linearly
+// interpolating between two points x0 and x1 of a 
+// function with values y0 and y1 at those points.
 double linear_interp(double x0, double x1, double y0, double y1, double x)
 {
-    // linearly interpolates between two points on a table
-    double a = (y1 - y0) / (x1 - x0);
-    double y = (y0 + (x - x0) * a);
-    return y;
+    double slope = (y1 - y0) / (x1 - x0);
+    return (y0 + (x - x0) * slope);
 }
 
-double nonreactive_radial_force(double c0, double c1, double r, double dis, double cgforce1, double cgforce2)
+// General force weighting for the diagonal contribution
+// of a radial force.
+double nonreactive_radial_force(double c0, double c1, double r, double dis, double cgforce0, double cgforce1)
 {
-    // general weighter
-    double newforce;
-    newforce = c0 * c0 * (cgforce1 * dis / r) + c1 * c1 * (cgforce2 * dis / r);
-    return newforce;
+    return c0 * c0 * (cgforce0 * dis / r) + c1 * c1 * (cgforce1 * dis / r);
 }
