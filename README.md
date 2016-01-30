@@ -1,1 +1,1 @@
-added to github
+A script used for calculating weights for reactive CG modeling.
