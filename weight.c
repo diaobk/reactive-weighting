@@ -674,9 +674,9 @@ int main()
             fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
             fz[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
 
-            fx[reactive_cl_id] -= c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
-            fy[reactive_cl_id] -= c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
-            fz[reactive_cl_id] -= c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
+            fx[reactive_cl_id] += -c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_cl_id] += -c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_cl_id] += -c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
         /*
@@ -763,9 +763,9 @@ int main()
             fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
             fz[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
 
-            fx[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
-            fy[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
-            fz[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
+            fx[reactive_c_id] += -c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
+            fy[reactive_c_id] += -c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
+            fz[reactive_c_id] += -c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
         }
 ///////////////////////////////////////////
 
@@ -805,9 +805,9 @@ int main()
         fy[propyl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
         fz[propyl_id] += c[0] * c[0] * (cgforce0 * disz / r) + c[1] * c[1] * (cgforce1 * disz / r);
 
-        fx[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
-        fy[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
-        fz[reactive_c_id] -= c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
+        fx[reactive_c_id] += -c[0] * c[0] * (cgforce0 * disx / r) - c[1] * c[1] * (cgforce1 * disx / r);
+        fy[reactive_c_id] += -c[0] * c[0] * (cgforce0 * disy / r) - c[1] * c[1] * (cgforce1 * disy / r);
+        fz[reactive_c_id] += -c[0] * c[0] * (cgforce0 * disz / r) - c[1] * c[1] * (cgforce1 * disz / r);
 
 ///////////////////////////////////////////
         /*
