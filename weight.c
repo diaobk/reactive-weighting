@@ -34,10 +34,12 @@ int main()
 
     FILE *ifp;
     FILE *ifp0;
+    FILE *ifp00;
     FILE *ofp;
 
     ifp = fopen("MeOH_sample1_nobias.cg.dat", "r");
     ifp0 = fopen("coeff.dat", "r");
+    ifp00 = fopen("reaccent.dat","r");
     ofp = fopen("cg.MeOH_sample_remainder.dat", "w");
 
     const unsigned n_total_beads = 1005;
@@ -144,7 +146,15 @@ int main()
 
         //read in line of coefficient file
 
-        fscanf(ifp0, "%lf %lf\n", &c[0], &c[1]);
+	fscanf(ifp00,"%d\n",&active);
+
+	if(active == (reactive_cl_id +1) ){
+		fscanf(ifp0, "%lf %lf\n", &c[0], &c[1]);	
+	}
+
+	if(active == (bonded_cl_id +1)){
+		fscanf(ifp0,"%lf %lf\n",&c[1],$c[2]);
+	}
 
         printf("%lf %lf\n", c[0], c[1]);
 
