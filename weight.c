@@ -154,7 +154,7 @@ int main()
 	}
 
 	if(active == (bonded_cl_id +1)){
-		fscanf(ifp0,"%lf %lf\n",&c[1],$c[2]);
+		fscanf(ifp0,"%lf %lf\n",&c[1],&c[0]);
 	}
 
         printf("%lf %lf\n", c[0], c[1]);
