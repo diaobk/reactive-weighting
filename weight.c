@@ -106,6 +106,7 @@ int main()
     int k;
     int id;
     int ts;
+    int active;
 
     char buffer[100];
 
