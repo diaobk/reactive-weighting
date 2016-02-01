@@ -757,7 +757,7 @@ int main()
 
         if (r < 10.0) {
             cgforce0 = calc_table_force(bond_table_binwidth, fbond[1], r);
-            cgforce0 = calc_table_force(nonbond_table_binwidth, f[8], r);
+            cgforce1 = calc_table_force(nonbond_table_binwidth, f[8], r);
 
             fx[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disx / r) + c[1] * c[1] * (cgforce1 * disx / r);
             fy[bonded_cl_id] += c[0] * c[0] * (cgforce0 * disy / r) + c[1] * c[1] * (cgforce1 * disy / r);
