@@ -149,11 +149,11 @@ int main()
 
 	fscanf(ifp00,"%d\n",&active);
 
-	if(active == (reactive_cl_id +1) ){
+	if(active == 1001 ){
 		fscanf(ifp0, "%lf %lf\n", &c[0], &c[1]);	
 	}
 
-	if(active == (bonded_cl_id +1)){
+	if(active == 1003 ){
 		fscanf(ifp0,"%lf %lf\n",&c[1],&c[0]);
 	}
 
